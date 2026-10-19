@@ -20,3 +20,20 @@ Object_Detection_Dataset/
 ├── train/                # Training set
 ├── val/                  # Validation set
 └── test/                 # Testing set
+🛠️ Planned Tech Stack & Tools
+Programming Language: Python 3.12
+
+IDE: Visual Studio Code / Jupyter Notebook / Google Colab
+
+Computer Vision & ML Libraries: OpenCV, Ultralytics (YOLO) / TensorFlow / Scikit-Learn, NumPy
+
+Annotation Tool: LabelImg / Roboflow / CVAT
+
+🚀 Project Roadmap
+[x] Phase 1: Repository setup and Google Drive dataset architecture
+
+[ ] Phase 2: First sample batch of personal images collected and uploaded (Target: Thursday)
+
+[ ] Phase 3: Image preprocessing and bounding-box annotation
+
+[ ] Phase 4: Model training, validation, and real-time recognition testing
