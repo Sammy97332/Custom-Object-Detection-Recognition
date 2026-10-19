@@ -31,7 +31,10 @@ Annotation Tool: LabelImg / Roboflow / CVAT
 
 🚀 Project Roadmap
 [x] Phase 1: Repository setup and Google Drive dataset architecture
+👤 Author
+Name: [Your Full Name]
 
+Course / Assignment: Object Detection and Recognition
 [ ] Phase 2: First sample batch of personal images collected and uploaded (Target: Thursday)
 
 [ ] Phase 3: Image preprocessing and bounding-box annotation
