@@ -15,11 +15,8 @@ The image dataset is hosted on Google Drive and organized into raw sample batche
 
 ```text
 Object_Detection_Dataset/
-├── 01_raw_images/        # Initial sample batch of images
-├── 02_annotated_data/    # Bounding box annotations and class labels
-├── train/                # Training set
-├── val/                  # Validation set
-└── test/                 # Testing set
+├── Batch_1_Sample_images/        # Initial sample batch of images
+
 🛠️ Planned Tech Stack & Tools
 Programming Language: Python 3.12
 
