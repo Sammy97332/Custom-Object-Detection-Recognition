@@ -10,6 +10,7 @@ export default function App() {
   const [inferenceMs, setInferenceMs] = useState(null);
   const [loading, setLoading] = useState(false);
   const [webcamActive, setWebcamActive] = useState(false);
+  const [shotTaken, setShotTaken] = useState(false);
   const [error, setError] = useState("");
 
   const imgRef = useRef(null);
@@ -17,6 +18,15 @@ export default function App() {
   const canvasRef = useRef(null);
   const streamRef = useRef(null);
   const intervalRef = useRef(null);
+  const confRef = useRef(conf);
+  const lastShotRef = useRef(null);
+
+  const clearOverlay = () => {
+    const canvas = canvasRef.current;
+    if (canvas) {
+      canvas.getContext("2d").clearRect(0, 0, canvas.width, canvas.height);
+    }
+  };
 
   const drawBoxes = (boxes, origW, origH, displayW, displayH) => {
     const canvas = canvasRef.current;
@@ -53,10 +63,10 @@ export default function App() {
     });
   };
 
-  const runInference = async (blob, displayW, displayH) => {
+  const runInference = async (blob, displayW, displayH, overrideConf) => {
     const formData = new FormData();
     formData.append("image", blob, "frame.jpg");
-    formData.append("conf", conf);
+    formData.append("conf", overrideConf ?? confRef.current);
 
     try {
       setError("");
@@ -83,6 +93,7 @@ export default function App() {
     if (!file) return;
 
     setDetections([]);
+    clearOverlay();
     setLoading(true);
     const url = URL.createObjectURL(file);
     const img = imgRef.current;
@@ -94,42 +105,110 @@ export default function App() {
     };
   };
 
+  const startLiveLoop = () => {
+    clearInterval(intervalRef.current);
+    const captureCanvas = document.createElement("canvas");
+
+    intervalRef.current = setInterval(() => {
+      const video = videoRef.current;
+      if (!video || video.paused || video.readyState < 2) return;
+
+      captureCanvas.width = video.videoWidth;
+      captureCanvas.height = video.videoHeight;
+      captureCanvas.getContext("2d").drawImage(video, 0, 0);
+
+      captureCanvas.toBlob(
+        (blob) => {
+          if (blob) {
+            runInference(blob, video.clientWidth, video.clientHeight);
+          }
+        },
+        "image/jpeg",
+        0.8
+      );
+    }, 350);
+  };
+
   const startWebcam = async () => {
     try {
       const stream = await navigator.mediaDevices.getUserMedia({ video: true });
       streamRef.current = stream;
-      videoRef.current.srcObject = stream;
+      const video = videoRef.current;
+      video.srcObject = stream;
+      await video.play();
       setWebcamActive(true);
-
-      const captureCanvas = document.createElement("canvas");
-      intervalRef.current = setInterval(() => {
-        const video = videoRef.current;
-        if (!video || video.readyState !== 4) return;
-
-        captureCanvas.width = video.videoWidth;
-        captureCanvas.height = video.videoHeight;
-        captureCanvas.getContext("2d").drawImage(video, 0, 0);
-
-        captureCanvas.toBlob(
-          (blob) => {
-            if (blob) {
-              runInference(blob, video.clientWidth, video.clientHeight);
-            }
-          },
-          "image/jpeg",
-          0.8
-        );
-      }, 300);
+      setShotTaken(false);
+      lastShotRef.current = null;
+      startLiveLoop();
     } catch {
       setError("Unable to access webcam. Check browser camera permissions.");
+    }
+  };
+
+  const takeShot = () => {
+    const video = videoRef.current;
+    if (!video || video.readyState < 2) return;
+
+    clearInterval(intervalRef.current);
+    video.pause();
+    setShotTaken(true);
+    setLoading(true);
+
+    const captureCanvas = document.createElement("canvas");
+    captureCanvas.width = video.videoWidth;
+    captureCanvas.height = video.videoHeight;
+    captureCanvas.getContext("2d").drawImage(video, 0, 0);
+
+    captureCanvas.toBlob(
+      async (blob) => {
+        if (blob) {
+          lastShotRef.current = blob;
+          await runInference(blob, video.clientWidth, video.clientHeight);
+        }
+        setLoading(false);
+      },
+      "image/jpeg",
+      0.92
+    );
+  };
+
+  const retakeShot = () => {
+    const video = videoRef.current;
+    clearOverlay();
+    lastShotRef.current = null;
+    setDetections([]);
+    setInferenceMs(null);
+    setShotTaken(false);
+    if (video) {
+      video.play();
+      startLiveLoop();
     }
   };
 
   const stopWebcam = () => {
     clearInterval(intervalRef.current);
     streamRef.current?.getTracks().forEach((t) => t.stop());
+    clearOverlay();
+    lastShotRef.current = null;
     setWebcamActive(false);
+    setShotTaken(false);
     setDetections([]);
+    setInferenceMs(null);
+  };
+
+  const handleConfChange = (e) => {
+    const newConf = parseFloat(e.target.value);
+    setConf(newConf);
+    confRef.current = newConf;
+
+    if (mode === "webcam" && shotTaken && lastShotRef.current && videoRef.current) {
+      runInference(
+        lastShotRef.current,
+        videoRef.current.clientWidth,
+        videoRef.current.clientHeight,
+        newConf
+      );
+    }
   };
 
   useEffect(() => () => stopWebcam(), []);
@@ -172,7 +251,7 @@ export default function App() {
             <h1>Object Detection</h1>
           </div>
           <div className="topbar-actions">
-            <span className="model-badge"><span></span> YOLOv8 Model</span>
+            <span className="model-badge"><span></span> YOLO26n Model</span>
             <button className="icon-button" type="button" aria-label="Notifications">
               <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
             </button>
@@ -187,7 +266,7 @@ export default function App() {
                   <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5l5 5"/><path d="M4 15v4h16v-4"/></svg>
                   Upload Image
                 </button>
-                <button className={mode === "webcam" ? "active" : ""} type="button" role="tab" aria-selected={mode === "webcam"} onClick={() => setMode("webcam")}>
+                <button className={mode === "webcam" ? "active" : ""} type="button" role="tab" aria-selected={mode === "webcam"} onClick={() => { clearOverlay(); setDetections([]); setMode("webcam"); }}>
                   <svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>
                   Live Webcam
                 </button>
@@ -196,7 +275,7 @@ export default function App() {
               <label className="confidence-control">
                 <span>Confidence</span>
                 <strong>{(conf * 100).toFixed(0)}%</strong>
-                <input type="range" min="0.1" max="0.95" step="0.05" value={conf} onChange={(e) => setConf(parseFloat(e.target.value))} />
+                <input type="range" min="0.1" max="0.95" step="0.05" value={conf} onChange={handleConfChange} />
               </label>
             </div>
 
@@ -222,12 +301,45 @@ export default function App() {
                       <svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>
                     </div>
                     <strong>Camera is inactive</strong>
-                    <span>Start the camera to begin live detection</span>
+                    <span>Start the camera to take a shot or run live detection</span>
                   </div>
                 )}
-                <button className={webcamActive ? "camera-button stop" : "camera-button"} type="button" onClick={webcamActive ? stopWebcam : startWebcam}>
-                  <span></span>{webcamActive ? "Stop Camera" : "Start Camera"}
-                </button>
+
+                <div
+                  style={{
+                    position: "absolute",
+                    bottom: "1.25rem",
+                    left: "50%",
+                    transform: "translateX(-50%)",
+                    display: "flex",
+                    gap: "0.75rem",
+                    zIndex: 10,
+                  }}
+                >
+                  {webcamActive && (
+                    <button
+                      className="camera-button"
+                      style={{
+                        position: "static",
+                        transform: "none",
+                        background: shotTaken ? "#2563eb" : "#10b981",
+                        color: "#ffffff",
+                      }}
+                      type="button"
+                      onClick={shotTaken ? retakeShot : takeShot}
+                    >
+                      {shotTaken ? "Retake Shot" : "Take Shot & Detect"}
+                    </button>
+                  )}
+                  <button
+                    className={webcamActive ? "camera-button stop" : "camera-button"}
+                    style={{ position: "static", transform: "none" }}
+                    type="button"
+                    onClick={webcamActive ? stopWebcam : startWebcam}
+                  >
+                    <span></span>{webcamActive ? "Stop Camera" : "Start Camera"}
+                  </button>
+                </div>
               </div>
             )}
           </section>
@@ -243,7 +355,7 @@ export default function App() {
 
             <div className="result-summary">
               {loading ? (
-                <div className="scanning-state"><div className="spinner"></div><strong>Analyzing image</strong><span>Running inference...</span></div>
+                <div className="scanning-state"><div className="spinner"></div><strong>Analyzing frame</strong><span>Running inference...</span></div>
               ) : (
                 <>
                   <div className="summary-icon">
@@ -254,7 +366,7 @@ export default function App() {
                     )}
                   </div>
                   <strong>{detections.length > 0 ? "Target Identified" : "No Target Detected"}</strong>
-                  <span>{detections.length > 0 ? `${detections.length} object${detections.length > 1 ? "s" : ""} found in image` : "Upload or scan an image to begin"}</span>
+                  <span>{detections.length > 0 ? `${detections.length} object${detections.length > 1 ? "s" : ""} found in frame` : "Upload an image or take a webcam shot"}</span>
                 </>
               )}
             </div>
