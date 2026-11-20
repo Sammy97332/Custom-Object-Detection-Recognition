@@ -1,4 +1,5 @@
 import { useEffect, useRef, useState } from "react";
+import "./App.css";
 
 const API_URL = "http://127.0.0.1:5000/predict";
 
@@ -134,76 +135,149 @@ export default function App() {
   useEffect(() => () => stopWebcam(), []);
 
   return (
-    <div style={{ maxWidth: 820, margin: "2rem auto", fontFamily: "sans-serif", padding: "0 1rem" }}>
-      <h1>Custom Facial Recognition System</h1>
+    <div className="app-shell">
+      <aside className="sidebar">
+        <div className="brand">
+          <div className="brand-mark" aria-hidden="true">
+            <svg viewBox="0 0 24 24"><path d="M12 3l7 3v5c0 4.6-2.9 7.9-7 10-4.1-2.1-7-5.4-7-10V6l7-3z" /><circle cx="12" cy="11" r="3" /></svg>
+          </div>
+          <span>Vision<span>Lab</span></span>
+        </div>
 
-      <div style={{ display: "flex", gap: "1rem", alignItems: "center", marginBottom: "1rem", flexWrap: "wrap" }}>
-        <button
-          onClick={() => { stopWebcam(); setMode("upload"); }}
-          style={{ padding: "0.5rem 1rem", fontWeight: mode === "upload" ? "bold" : "normal", cursor: "pointer" }}
-        >
-          Upload Image
-        </button>
-        <button
-          onClick={() => setMode("webcam")}
-          style={{ padding: "0.5rem 1rem", fontWeight: mode === "webcam" ? "bold" : "normal", cursor: "pointer" }}
-        >
-          Live Webcam
-        </button>
+        <nav className="side-nav" aria-label="Primary navigation">
+          <button className="nav-item active" type="button">
+            <svg viewBox="0 0 24 24"><rect x="3" y="3" width="7" height="7" rx="2"/><rect x="14" y="3" width="7" height="7" rx="2"/><rect x="3" y="14" width="7" height="7" rx="2"/><rect x="14" y="14" width="7" height="7" rx="2"/></svg>
+            Detection
+          </button>
+          <button className="nav-item" type="button">
+            <svg viewBox="0 0 24 24"><path d="M3 12a9 9 0 1018 0 9 9 0 10-18 0"/><path d="M12 7v5l3 2"/></svg>
+            History
+          </button>
+          <button className="nav-item" type="button">
+            <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="3"/><path d="M19.4 15a1.7 1.7 0 00.3 1.9l.1.1-1.8 1.8-.1-.1a1.7 1.7 0 00-1.9-.3 1.7 1.7 0 00-1 1.6v.2H11V20a1.7 1.7 0 00-1-1.6 1.7 1.7 0 00-1.9.3l-.1.1L6.2 17l.1-.1a1.7 1.7 0 00.3-1.9A1.7 1.7 0 005 14H4.8v-4H5a1.7 1.7 0 001.6-1 1.7 1.7 0 00-.3-1.9L6.2 7 8 5.2l.1.1A1.7 1.7 0 0010 5.6a1.7 1.7 0 001-1.6v-.2h4V4a1.7 1.7 0 001 1.6 1.7 1.7 0 001.9-.3l.1-.1L19.8 7l-.1.1a1.7 1.7 0 00-.3 1.9 1.7 1.7 0 001.6 1h.2v4H21a1.7 1.7 0 00-1.6 1z"/></svg>
+            Settings
+          </button>
+        </nav>
 
-        <label style={{ marginLeft: "auto" }}>
-          Confidence: <strong>{(conf * 100).toFixed(0)}%</strong>
-          <input
-            type="range"
-            min="0.1"
-            max="0.95"
-            step="0.05"
-            value={conf}
-            onChange={(e) => setConf(parseFloat(e.target.value))}
-            style={{ marginLeft: "0.5rem" }}
-          />
-        </label>
-      </div>
+        <div className="sidebar-footer">
+          <div className="status-dot"></div>
+          <div><strong>System Online</strong><span>API connected</span></div>
+        </div>
+      </aside>
 
-      {mode === "upload" ? (
-        <input type="file" accept="image/*" onChange={handleFileUpload} />
-      ) : (
-        <button onClick={webcamActive ? stopWebcam : startWebcam} style={{ padding: "0.5rem 1rem", cursor: "pointer" }}>
-          {webcamActive ? "Stop Camera" : "Start Camera"}
-        </button>
-      )}
+      <main className="main-content">
+        <header className="topbar">
+          <div>
+            <p className="eyebrow">COMPUTER VISION WORKSPACE</p>
+            <h1>Object Detection</h1>
+          </div>
+          <div className="topbar-actions">
+            <span className="model-badge"><span></span> YOLOv8 Model</span>
+            <button className="icon-button" type="button" aria-label="Notifications">
+              <svg viewBox="0 0 24 24"><path d="M18 8a6 6 0 00-12 0c0 7-3 7-3 9h18c0-2-3-2-3-9M10 21h4"/></svg>
+            </button>
+          </div>
+        </header>
 
-      {error && (
-        <p style={{ color: "#dc2626", marginTop: "0.75rem", fontWeight: "bold" }}>{error}</p>
-      )}
+        <div className="workspace">
+          <section className="detection-card">
+            <div className="card-toolbar">
+              <div className="segmented-control" role="tablist" aria-label="Detection source">
+                <button className={mode === "upload" ? "active" : ""} type="button" role="tab" aria-selected={mode === "upload"} onClick={() => { stopWebcam(); setMode("upload"); }}>
+                  <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5l5 5"/><path d="M4 15v4h16v-4"/></svg>
+                  Upload Image
+                </button>
+                <button className={mode === "webcam" ? "active" : ""} type="button" role="tab" aria-selected={mode === "webcam"} onClick={() => setMode("webcam")}>
+                  <svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>
+                  Live Webcam
+                </button>
+              </div>
 
-      <div style={{ position: "relative", marginTop: "1rem", display: "inline-block" }}>
-        {mode === "upload" ? (
-          <img ref={imgRef} alt="" style={{ maxWidth: "100%", display: "block", borderRadius: 8 }} />
-        ) : (
-          <video ref={videoRef} autoPlay playsInline muted style={{ maxWidth: "100%", display: "block", borderRadius: 8 }} />
-        )}
-        <canvas
-          ref={canvasRef}
-          style={{ position: "absolute", top: 0, left: 0, pointerEvents: "none" }}
-        />
-      </div>
+              <label className="confidence-control">
+                <span>Confidence</span>
+                <strong>{(conf * 100).toFixed(0)}%</strong>
+                <input type="range" min="0.1" max="0.95" step="0.05" value={conf} onChange={(e) => setConf(parseFloat(e.target.value))} />
+              </label>
+            </div>
 
-      <div style={{ marginTop: "1rem", padding: "0.75rem", background: "#f3f4f6", borderRadius: 8 }}>
-        {loading ? (
-          <span>Running inference...</span>
-        ) : (
-          <span>
-            Status:{" "}
-            <strong>
-              {detections.length > 0
-                ? `Target Identified (${detections.length} match)`
-                : "No Target Detected"}
-            </strong>
-            {inferenceMs !== null && ` • Inference time: ${inferenceMs} ms`}
-          </span>
-        )}
-      </div>
+            {error && <div className="error-banner"><span>!</span>{error}</div>}
+
+            {mode === "upload" ? (
+              <div className="preview-area">
+                <label className="upload-overlay">
+                  <input type="file" accept="image/*" onChange={handleFileUpload} />
+                  <svg viewBox="0 0 24 24"><path d="M12 16V4m0 0L7 9m5-5l5 5"/><path d="M4 15v4h16v-4"/></svg>
+                  <span>Choose an image</span>
+                </label>
+                <img ref={imgRef} alt="Detection preview" />
+                <canvas ref={canvasRef} className="detection-canvas" />
+              </div>
+            ) : (
+              <div className="preview-area webcam-area">
+                <video ref={videoRef} autoPlay playsInline muted />
+                <canvas ref={canvasRef} className="detection-canvas" />
+                {!webcamActive && (
+                  <div className="camera-placeholder">
+                    <div className="camera-icon">
+                      <svg viewBox="0 0 24 24"><rect x="3" y="6" width="13" height="12" rx="2"/><path d="M16 10l5-3v10l-5-3"/></svg>
+                    </div>
+                    <strong>Camera is inactive</strong>
+                    <span>Start the camera to begin live detection</span>
+                  </div>
+                )}
+                <button className={webcamActive ? "camera-button stop" : "camera-button"} type="button" onClick={webcamActive ? stopWebcam : startWebcam}>
+                  <span></span>{webcamActive ? "Stop Camera" : "Start Camera"}
+                </button>
+              </div>
+            )}
+          </section>
+
+          <aside className="results-card">
+            <div className="results-heading">
+              <div>
+                <p>ANALYSIS</p>
+                <h2>Detection Results</h2>
+              </div>
+              <span className={`status-pill ${detections.length ? "detected" : ""}`}>{detections.length ? "Detected" : "Idle"}</span>
+            </div>
+
+            <div className="result-summary">
+              {loading ? (
+                <div className="scanning-state"><div className="spinner"></div><strong>Analyzing image</strong><span>Running inference...</span></div>
+              ) : (
+                <>
+                  <div className="summary-icon">
+                    {detections.length > 0 ? (
+                      <svg viewBox="0 0 24 24"><path d="M5 12l4 4L19 6"/></svg>
+                    ) : (
+                      <svg viewBox="0 0 24 24"><circle cx="12" cy="12" r="9"/><path d="M8 12h8"/></svg>
+                    )}
+                  </div>
+                  <strong>{detections.length > 0 ? "Target Identified" : "No Target Detected"}</strong>
+                  <span>{detections.length > 0 ? `${detections.length} object${detections.length > 1 ? "s" : ""} found in image` : "Upload or scan an image to begin"}</span>
+                </>
+              )}
+            </div>
+
+            {detections.length > 0 && (
+              <div className="detections-list">
+                {detections.map((det, index) => (
+                  <div className="detection-row" key={`${det.label}-${index}`}>
+                    <div className="detection-index">{index + 1}</div>
+                    <div><strong>{det.label}</strong><span>Confidence</span></div>
+                    <b>{(det.confidence * 100).toFixed(1)}%</b>
+                  </div>
+                ))}
+              </div>
+            )}
+
+            <div className="metrics">
+              <div><span>Inferences</span><strong>{detections.length}</strong></div>
+              <div><span>Latency</span><strong>{inferenceMs !== null ? `${inferenceMs} ms` : "--"}</strong></div>
+            </div>
+          </aside>
+        </div>
+      </main>
     </div>
   );
 }
