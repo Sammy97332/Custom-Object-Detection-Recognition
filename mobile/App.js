@@ -71,7 +71,7 @@ export default function App() {
     new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open("POST", url);
-      xhr.timeout = 25000;
+      xhr.timeout = 60000;
 
       xhr.onload = () => {
         if (xhr.status >= 200 && xhr.status < 300) {
@@ -86,7 +86,7 @@ export default function App() {
       };
 
       xhr.onerror = () => {
-        reject(new Error(`Upload failed to ${url}. Check Wi-Fi and Windows Firewall.`));
+        reject(new Error(`Upload failed to ${url}. Status ${xhr.status}: ${xhr.responseText || "Network error (connection dropped or unreachable)"}`));
       };
 
       xhr.ontimeout = () => {
