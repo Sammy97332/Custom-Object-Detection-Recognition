@@ -40,6 +40,12 @@ def predict():
     if image is None:
         return jsonify({"error": "Invalid image format"}), 400
 
+    max_dim = 640
+    h0, w0 = image.shape[:2]
+    if max(h0, w0) > max_dim:
+        scale = max_dim / float(max(h0, w0))
+        image = cv2.resize(image, (int(w0 * scale), int(h0 * scale)), interpolation=cv2.INTER_AREA)
+
     height, width = image.shape[:2]
 
     start = time.perf_counter()
