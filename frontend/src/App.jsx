@@ -8,7 +8,7 @@ export default function App() {
   const [showModelInfo, setShowModelInfo] = useState(false);
 
   // Settings State
-  const [apiBase, setApiBase] = useState("http://127.0.0.1:5000");
+  const [apiBase, setApiBase] = useState(import.meta.env.VITE_API_URL || "http://127.0.0.1:5000");
   const [boxColor, setBoxColor] = useState("#10b981");
   const [webcamAutoDetect, setWebcamAutoDetect] = useState(false);
   const [conf, setConf] = useState(0.5);

@@ -22,7 +22,7 @@ export default function App() {
   // Navigation & Settings
   const [activeTab, setActiveTab] = useState("detection"); // "detection" | "history" | "settings"
   const [sourceMode, setSourceMode] = useState("upload"); // "upload" | "camera"
-  const [apiBase, setApiBase] = useState("http://10.199.85.139:5000");
+  const [apiBase, setApiBase] = useState("https://custom-object-detection-recognition.onrender.com");
   const [conf, setConf] = useState(0.5);
   const [boxColor, setBoxColor] = useState("#10b981");
 
