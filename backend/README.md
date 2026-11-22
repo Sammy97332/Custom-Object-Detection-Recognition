@@ -1,6 +1,6 @@
 ---
 title: VisionLab API
-emoji: 👁️
+emoji: 🔍
 colorFrom: green
 colorTo: blue
 sdk: docker
