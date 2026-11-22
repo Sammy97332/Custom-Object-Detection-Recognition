@@ -8,7 +8,9 @@ export default function App() {
   const [showModelInfo, setShowModelInfo] = useState(false);
 
   // Settings State
-  const [apiBase, setApiBase] = useState(import.meta.env.VITE_API_URL || (import.meta.env.DEV ? "http://127.0.0.1:5000" : "https://custom-object-detection-recognition.onrender.com"));
+  const cleanApiUrl = (u) => (u || "").replace(/[\[\]\s]/g, "").replace(/\/+$/, "");
+  const [apiBase, setApiBaseRaw] = useState(cleanApiUrl(import.meta.env.VITE_API_URL) || (import.meta.env.DEV ? "http://127.0.0.1:5000" : "https://custom-object-detection-recognition.onrender.com"));
+  const setApiBase = (u) => setApiBaseRaw(cleanApiUrl(u));
   const [boxColor, setBoxColor] = useState("#10b981");
   const [webcamAutoDetect, setWebcamAutoDetect] = useState(false);
   const [conf, setConf] = useState(0.5);
