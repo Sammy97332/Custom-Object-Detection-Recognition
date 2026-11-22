@@ -14,6 +14,14 @@ MODEL_PATH = Path(__file__).resolve().parent / "models" / "best.pt"
 model = YOLO(str(MODEL_PATH))
 
 
+@app.route("/", methods=["GET"])
+def index():
+    return {
+        "service": "VisionLab YOLO Inference API",
+        "status": "online",
+        "endpoints": ["/health", "/predict"]
+    }
+
 @app.route("/health", methods=["GET"])
 def health():
     return jsonify({"status": "ok", "classes": model.names})
